@@ -31,8 +31,8 @@ from fastapi.staticfiles import StaticFiles
 
 RESOURCE = os.environ["AGENT_ENGINE_RESOURCE_NAME"]
 AGENT_DIRECTORY = os.environ.get("AGENT_DIRECTORY", "app")
-LOCATION = RESOURCE.split("/locations/")[1].split("/")[0]
-PROJECT_ID = RESOURCE.split("/projects/")[1].split("/")[0]
+LOCATION = RESOURCE.split("/locations/")[1].split("/")[0] if "/locations/" in RESOURCE else "us-central1"
+PROJECT_ID = RESOURCE.split("/projects/")[1].split("/")[0] if "/projects/" in RESOURCE else "qwiklabs-gcp-01-f419067f0d55"
 BUCKET_NAME = f"{PROJECT_ID}-static-assets-bucket"
 
 A2A_BASE = (
