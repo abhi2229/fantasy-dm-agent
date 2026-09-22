@@ -29,10 +29,25 @@ from fastapi import FastAPI, Request, UploadFile, File, Form
 from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
 
-RESOURCE = os.environ["AGENT_ENGINE_RESOURCE_NAME"]
+RESOURCE = os.environ.get("AGENT_ENGINE_RESOURCE_NAME", "")
 AGENT_DIRECTORY = os.environ.get("AGENT_DIRECTORY", "app")
-LOCATION = RESOURCE.split("/locations/")[1].split("/")[0] if "/locations/" in RESOURCE else "us-central1"
-PROJECT_ID = RESOURCE.split("/projects/")[1].split("/")[0] if "/projects/" in RESOURCE else "qwiklabs-gcp-01-f419067f0d55"
+
+def _parse_resource(res: str):
+    loc = "us-central1"
+    proj = "qwiklabs-gcp-01-f419067f0d55"
+    if "/locations/" in res:
+        try:
+            loc = res.split("/locations/")[1].split("/")[0]
+        except Exception:
+            pass
+    if "/projects/" in res:
+        try:
+            proj = res.split("/projects/")[1].split("/")[0]
+        except Exception:
+            pass
+    return loc, proj
+
+LOCATION, PROJECT_ID = _parse_resource(RESOURCE)
 BUCKET_NAME = f"{PROJECT_ID}-static-assets-bucket"
 
 A2A_BASE = (
