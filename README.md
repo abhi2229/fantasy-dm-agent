@@ -18,13 +18,16 @@ The following features and Google Cloud Platform services are fully implemented 
 - **🎬 Video Generation (Gemini Omni Flash Preview)**: Generates short animated fantasy item video demonstrations using `gemini-omni-flash-preview` in the `global` region.
 - **☁️ Public Cloud Storage (GCS Bucket)**: Stores generated image and video assets in a public Google Cloud Storage bucket (`gs://qwiklabs-gcp-01-f419067f0d55-static-assets-bucket`) and returns public HTTPS URLs.
 - **📚 Vertex AI RAG Engine**: Grounded on Culpeper's Herbal knowledge corpus via `consult_herbal_docs` for ancient lore and remedy lookups.
-- **📄 Document & Photo Upload (PDF, Word DOC/DOCX, Images)**: Allows users to attach PDFs, Word documents, or photos/images directly in chat. Extracts text from documents and uploads photos to public Google Cloud Storage so the Gemini agent can analyze and incorporate them into the game.
+- **🔄 Dual Mode Switcher (Fantasy DM vs Normal AI Mode)**: Instant toggle between **Fantasy DM Mode** (tabletop RPG campaign companion with dark fantasy styling and RPG quick-chips) and **Normal AI Mode** (clean general-purpose AI assistant theme with document summary, coding, and brainstorming quick-chips). Switches context and UI dynamically.
+- **🤖 AI Model Selector**: Live dropdown selector enabling users to switch between Google Gemini models (**Gemini 2.5 Flash**, **Gemini 2.5 Pro**, **Gemini 2.0 Flash**, and **Gemini Flash Latest**).
+- **📄 Document & Photo Upload (PDF, Word DOC/DOCX, Images)**: Allows users to attach PDFs, Word documents, or photos/images directly in chat. Extracts text from documents and uploads photos to public Google Cloud Storage so the Gemini agent can analyze and incorporate them into the conversation.
 - **📦 Structured A2UI Surfaces**: Generates rich, compact A2UI card layouts (v0.8 Basic Catalog) rendered dynamically on the chat interface via an `after_model_callback`.
 - **💻 Agent Engine Sandbox Code Executor**: Safely executes Python code inside Google Cloud Agent Engine Sandbox for complex encounter calculations, stat adjustments, and dice probability.
 - **🎲 Game Mechanics & External Tools**:
   - `roll_dice`: Rolls virtual dice (e.g., `1d20+5`, `2d6+2`).
   - `fetch_random_magic_item`: Queries Open5e REST API for random magic loot.
   - `lookup_dnd_rules`: Queries D&D 5e REST API for official monster, spell, and equipment mechanics.
+
 
 ---
 

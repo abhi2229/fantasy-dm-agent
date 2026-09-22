@@ -156,6 +156,8 @@ def _upload_image_to_gcs(contents: bytes, filename: str, mime_type: str) -> str:
 async def chat(
     message: str = Form(""),
     user_id: str = Form("web-user"),
+    mode: str = Form("fantasy"),
+    model_name: str = Form("gemini-2.5-flash"),
     file: UploadFile | None = File(None),
 ):
     parts_to_send: list[Part] = []
@@ -192,18 +194,35 @@ async def chat(
             file_context_prompt = (
                 f"\n\n[USER ATTACHED PHOTO/IMAGE: '{filename}']\n"
                 f"Public Image URL: {public_url}\n"
-                f"Please analyze this image or incorporate it into the fantasy campaign/character context."
+                f"Please analyze this image and respond based on user instructions."
             )
         else:
             file_context_prompt = f"\n\n[USER ATTACHED FILE: '{filename}']"
 
-    final_message_text = (message + file_context_prompt).strip()
-    if not final_message_text:
-        final_message_text = "Please examine my uploaded document/image."
+    if mode == "normal":
+        mode_instruction = (
+            f"[SYSTEM DIRECTIVE | MODE: NORMAL AI ASSISTANT | REQUESTED MODEL: {model_name}]\n"
+            f"You are currently operating as a versatile, clear, and professional General AI Assistant. "
+            f"Do not roleplay as a Fantasy Dungeon Master or reference tabletop mechanics unless specifically asked by the user.\n\n"
+        )
+    else:
+        mode_instruction = (
+            f"[SYSTEM DIRECTIVE | MODE: FANTASY DUNGEON MASTER | REQUESTED MODEL: {model_name}]\n"
+            f"You are operating as an immersive Fantasy Dungeon Master and TTRPG companion.\n\n"
+        )
+
+    user_text = message.strip()
+    if not user_text and file_context_prompt:
+        user_text = "Please examine my uploaded document/image."
+    elif not user_text:
+        user_text = "Hello!"
+
+    final_message_text = f"{mode_instruction}User Request: {user_text}{file_context_prompt}"
 
     parts_to_send.append(Part(root=TextPart(text=final_message_text)))
 
     parts: list[dict] = []
+    context_key = f"{user_id}_{mode}"
 
     async with httpx.AsyncClient(headers=_auth_headers(), timeout=120) as client:
         card = await _get_card(client)
@@ -222,7 +241,7 @@ async def chat(
             message_id=str(uuid.uuid4()),
             role=Role.user,
             parts=parts_to_send,
-            context_id=_contexts.get(user_id),
+            context_id=_contexts.get(context_key),
         )
 
         last_task = None
@@ -234,10 +253,11 @@ async def chat(
             if task is not None:
                 last_task = task
                 if getattr(task, "context_id", None):
-                    _contexts[user_id] = task.context_id
+                    _contexts[context_key] = task.context_id
             if isinstance(update, TaskArtifactUpdateEvent):
                 got_artifact_update = True
                 parts.extend(_extract_parts(update.artifact.parts))
+
 
         if not got_artifact_update and last_task is not None:
             for artifact in getattr(last_task, "artifacts", None) or []:

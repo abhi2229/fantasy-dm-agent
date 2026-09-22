@@ -3,19 +3,18 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-<title>Fantasy Dungeon Master</title>
+<title>AI Assistant & Fantasy DM</title>
 <!-- Google Fonts: MedievalSharp, Outfit & Inter -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=MedievalSharp&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
-<!-- Material Symbols Outlined for A2UI icons -->
+<!-- Material Symbols Outlined for icons -->
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0">
 <style>
   :root {
-    --accent: #f59e0b; /* Vibrant amber / gold tone for fantasy theme */
+    --accent: #f59e0b; /* Amber gold for fantasy theme */
     --accent-gradient: linear-gradient(135deg, #f59e0b, #d97706);
-    --accent-glow: rgba(245, 158, 11, 0.3);
-    --accent-hover: #d97706;
+    --accent-glow: rgba(245, 158, 11, 0.35);
     --bg-dark: #090d16;
     --card-dark: #131b2e;
     --border-dark: #23314d;
@@ -24,6 +23,13 @@
     --user-bubble: linear-gradient(135deg, #d97706, #b45309);
     --safe-bottom: env(safe-area-inset-bottom, 0px);
     --header-height: 64px;
+  }
+
+  body.theme-normal {
+    --accent: #06b6d4; /* Cyber cyan / teal for normal AI assistant mode */
+    --accent-gradient: linear-gradient(135deg, #06b6d4, #0284c7);
+    --accent-glow: rgba(6, 182, 212, 0.35);
+    --user-bubble: linear-gradient(135deg, #0284c7, #0369a1);
   }
 
   * {
@@ -40,11 +46,10 @@
     font-family: 'Outfit', 'Inter', system-ui, -apple-system, sans-serif;
     background: var(--bg-dark);
     color: var(--text-main);
+    transition: background 0.3s ease;
   }
 
-  body {
-    display: flex;
-    flex-direction: column;
+  body.theme-fantasy {
     background-image: 
       radial-gradient(circle at 50% 0%, #1e1b4b 0%, transparent 60%),
       radial-gradient(circle at 100% 100%, #172554 0%, transparent 50%),
@@ -52,54 +57,154 @@
     background-attachment: fixed;
   }
 
+  body.theme-normal {
+    background-image: 
+      radial-gradient(circle at 50% 0%, #082f49 0%, transparent 60%),
+      radial-gradient(circle at 100% 100%, #0f172a 0%, transparent 50%),
+      radial-gradient(circle at 0% 100%, #164e63 0%, #090d16 80%);
+    background-attachment: fixed;
+  }
+
+  body {
+    display: flex;
+    flex-direction: column;
+  }
+
   /* Header */
   header {
     height: var(--header-height);
-    background: rgba(13, 19, 33, 0.85);
+    background: rgba(13, 19, 33, 0.88);
     backdrop-filter: blur(16px);
     -webkit-backdrop-filter: blur(16px);
-    border-bottom: 1px solid rgba(245, 158, 11, 0.2);
-    color: #fcd34d;
-    padding: 0 1.25rem;
-    font-family: 'MedievalSharp', cursive;
-    font-size: 1.5rem;
-    letter-spacing: 0.04em;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    padding: 0 1rem;
     display: flex;
     align-items: center;
     justify-content: space-between;
     box-shadow: 0 4px 24px rgba(0, 0, 0, 0.5);
     z-index: 10;
     flex-shrink: 0;
+    gap: 0.5rem;
   }
 
   .brand {
     display: flex;
     align-items: center;
-    gap: 0.6rem;
-    text-shadow: 0 0 12px rgba(245, 158, 11, 0.4);
+    gap: 0.5rem;
+    cursor: default;
   }
 
   .brand-icon {
-    font-size: 1.6rem;
+    font-size: 1.5rem;
+  }
+
+  .brand-title {
+    font-size: 1.25rem;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    color: var(--text-main);
+  }
+
+  body.theme-fantasy .brand-title {
+    font-family: 'MedievalSharp', cursive;
+    color: #fcd34d;
+    text-shadow: 0 0 12px rgba(245, 158, 11, 0.4);
+  }
+
+  body.theme-normal .brand-title {
+    font-family: 'Outfit', sans-serif;
+    color: #38bdf8;
+    text-shadow: 0 0 12px rgba(56, 189, 248, 0.4);
   }
 
   header .subtitle {
     font-family: 'Outfit', sans-serif;
-    font-size: 0.75rem;
+    font-size: 0.7rem;
     color: var(--text-muted);
     font-weight: 500;
     background: rgba(30, 41, 59, 0.7);
-    padding: 0.3rem 0.75rem;
-    border-radius: 12px;
+    padding: 0.2rem 0.5rem;
+    border-radius: 8px;
     border: 1px solid var(--border-dark);
-    letter-spacing: normal;
+  }
+
+  /* Controls (Mode Switcher & Model Selector) */
+  .header-controls {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  /* Mode Switcher Pill Segmented Toggle */
+  .mode-switcher {
+    display: flex;
+    background: rgba(15, 23, 42, 0.9);
+    border: 1px solid var(--border-dark);
+    padding: 3px;
+    border-radius: 20px;
+    gap: 2px;
+  }
+
+  .mode-btn {
+    border: none;
+    background: transparent;
+    color: var(--text-muted);
+    padding: 0.35rem 0.65rem;
+    border-radius: 16px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+    transition: all 0.2s ease;
+    box-shadow: none;
+  }
+
+  .mode-btn.active {
+    background: var(--accent-gradient);
+    color: #ffffff;
+    box-shadow: 0 2px 8px var(--accent-glow);
+  }
+
+  /* Model Selector Dropdown */
+  .model-selector-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+    background: rgba(15, 23, 42, 0.9);
+    border: 1px solid var(--border-dark);
+    padding: 0.3rem 0.5rem;
+    border-radius: 16px;
+  }
+
+  .model-selector-wrapper .model-icon {
+    font-size: 1rem;
+    color: var(--accent);
+  }
+
+  select#modelSelect {
+    background: transparent;
+    border: none;
+    color: var(--text-main);
+    font-size: 0.75rem;
+    font-weight: 600;
+    font-family: inherit;
+    outline: none;
+    cursor: pointer;
+    padding-right: 0.2rem;
+  }
+
+  select#modelSelect option {
+    background: #0f172a;
+    color: #f8fafc;
   }
 
   /* Chat Log Area */
   #log {
     flex: 1;
     overflow-y: auto;
-    padding: 1rem 1rem 1.5rem 1rem;
+    padding: 1rem;
     max-width: 860px;
     width: 100%;
     margin: 0 auto;
@@ -191,8 +296,8 @@
 
   .attachment-badge {
     background: rgba(30, 41, 59, 0.9);
-    border: 1px solid #f59e0b;
-    color: #fcd34d;
+    border: 1px solid var(--accent);
+    color: var(--accent);
     padding: 0.35rem 0.75rem;
     border-radius: 16px;
     font-size: 0.8rem;
@@ -230,7 +335,7 @@
   .prompt-chip {
     background: rgba(19, 27, 46, 0.9);
     border: 1px solid var(--border-dark);
-    color: #fcd34d;
+    color: var(--text-main);
     padding: 0.55rem 0.95rem;
     border-radius: 24px;
     font-size: 0.825rem;
@@ -276,7 +381,7 @@
     border: 1px solid var(--border-dark);
     border-radius: 16px;
     background: rgba(19, 27, 46, 0.8);
-    color: #fcd34d;
+    color: var(--accent);
     cursor: pointer;
     display: flex;
     align-items: center;
@@ -313,7 +418,7 @@
     box-shadow: 0 0 0 3px var(--accent-glow);
   }
 
-  button {
+  button#sendBtn {
     padding: 0.85rem 1.35rem;
     border: none;
     border-radius: 16px;
@@ -332,20 +437,31 @@
     flex-shrink: 0;
   }
 
-  button:active, button:hover {
+  button#sendBtn:active, button#sendBtn:hover {
     transform: scale(0.97);
     box-shadow: 0 2px 8px var(--accent-glow);
   }
 
-  /* Responsive Mobile Tweaks */
+  /* Responsive Mobile Layout */
   @media (max-width: 640px) {
     header {
-      font-size: 1.25rem;
-      padding: 0 1rem;
+      padding: 0 0.5rem;
     }
-    header .subtitle {
+    .brand-title {
+      font-size: 1.1rem;
+    }
+    .subtitle {
+      display: none;
+    }
+    .mode-text {
+      display: none;
+    }
+    .mode-btn {
+      padding: 0.35rem 0.5rem;
+    }
+    select#modelSelect {
       font-size: 0.7rem;
-      padding: 0.2rem 0.5rem;
+      max-width: 100px;
     }
     .bubble {
       max-width: 92%;
@@ -353,13 +469,12 @@
       padding: 0.75rem 1rem;
     }
     #log {
-      padding: 0.75rem 0.75rem 1rem 0.75rem;
-      gap: 1rem;
+      padding: 0.75rem 0.5rem 1rem 0.5rem;
     }
-    button span.btn-text {
+    button#sendBtn span.btn-text {
       display: none;
     }
-    button {
+    button#sendBtn {
       padding: 0.85rem 1rem;
       border-radius: 14px;
     }
@@ -369,7 +484,7 @@
     }
   }
 
-  /* --- A2UI Surface Components --- */
+  /* A2UI Surface Components */
   .a2card {
     border: 1px solid var(--border-dark);
     border-radius: 16px;
@@ -384,24 +499,47 @@
   .a2row { display: flex; flex-direction: row; gap: 0.75rem; align-items: center; flex-wrap: wrap; }
   .a2row.between { justify-content: space-between; }
   .a2text { margin: 0; line-height: 1.5; }
-  .a2text.a2-h1 { font-size: 1.35rem; font-weight: 700; color: #fcd34d; font-family: 'MedievalSharp', cursive; }
-  .a2text.a2-h2 { font-size: 1.15rem; font-weight: 700; color: #fbbf24; }
-  .a2text.a2-h3 { font-size: 1.05rem; font-weight: 600; color: #f59e0b; }
+  .a2text.a2-h1 { font-size: 1.35rem; font-weight: 700; color: var(--accent); }
+  .a2text.a2-h2 { font-size: 1.15rem; font-weight: 700; color: var(--accent); }
+  .a2text.a2-h3 { font-size: 1.05rem; font-weight: 600; color: var(--accent); }
   .a2text.a2-h4 { font-size: 0.95rem; font-weight: 600; }
   .a2text.a2-caption { font-size: 0.825rem; color: var(--text-muted); }
   .a2divider { border: none; border-top: 1px solid var(--border-dark); margin: 0.6rem 0; width: 100%; }
   .a2img { max-width: 100%; border-radius: 12px; display: block; border: 1px solid var(--border-dark); box-shadow: 0 4px 16px rgba(0,0,0,0.3); }
-  .material-symbols-outlined { font-family: 'Material Symbols Outlined'; font-size: 1.25rem; line-height: 1; vertical-align: middle; color: #f59e0b; }
+  .material-symbols-outlined { font-family: 'Material Symbols Outlined'; font-size: 1.25rem; line-height: 1; vertical-align: middle; color: var(--accent); }
 </style>
 </head>
-<body>
+<body class="theme-fantasy">
 
 <header>
   <div class="brand">
-    <span class="brand-icon">🛡️</span>
-    <span>Fantasy DM</span>
+    <span class="brand-icon" id="brandIcon">🛡️</span>
+    <span class="brand-title" id="brandTitle">Fantasy DM</span>
+    <span class="subtitle" id="brandSubtitle">AI Campaign Companion</span>
   </div>
-  <span class="subtitle">AI Campaign Companion</span>
+
+  <div class="header-controls">
+    <!-- Mode Switcher Pill Toggle -->
+    <div class="mode-switcher">
+      <button id="modeFantasyBtn" class="mode-btn active" onclick="switchMode('fantasy')">
+        <span>🔮</span> <span class="mode-text">Fantasy DM</span>
+      </button>
+      <button id="modeNormalBtn" class="mode-btn" onclick="switchMode('normal')">
+        <span>⚡</span> <span class="mode-text">Normal AI</span>
+      </button>
+    </div>
+
+    <!-- AI Model Selector -->
+    <div class="model-selector-wrapper" title="Select Gemini AI Model">
+      <span class="material-symbols-outlined model-icon">smart_toy</span>
+      <select id="modelSelect" onchange="changeModel(this.value)">
+        <option value="gemini-2.5-flash">Gemini 2.5 Flash</option>
+        <option value="gemini-2.5-pro">Gemini 2.5 Pro</option>
+        <option value="gemini-2.0-flash">Gemini 2.0 Flash</option>
+        <option value="gemini-flash-latest">Gemini Flash Latest</option>
+      </select>
+    </div>
+  </div>
 </header>
 
 <div id="log"></div>
@@ -416,19 +554,8 @@
 
 <div class="footer-container">
   <!-- Interactive Prompt Carousel -->
-  <div class="prompts-container">
-    <div class="prompt-chip" onclick="sendPrompt('🎲 Roll a d20 with a +5 strength modifier for my sword strike!')">
-      <span>🎲 Roll d20 (+5 Mod)</span>
-    </div>
-    <div class="prompt-chip" onclick="sendPrompt('📜 What is my character status, health, and active campaign quests?')">
-      <span>📜 Character & Quest Log</span>
-    </div>
-    <div class="prompt-chip" onclick="sendPrompt('🎨 Generate an epic visual illustration of a glowing ancient spell tome')">
-      <span>🎨 Generate Visual</span>
-    </div>
-    <div class="prompt-chip" onclick="sendPrompt('🎬 Generate a short video demonstration of an enchanted flame sword')">
-      <span>🎬 Generate Video</span>
-    </div>
+  <div class="prompts-container" id="promptsContainer">
+    <!-- Rendered dynamically based on mode -->
   </div>
 
   <form id="form">
@@ -445,12 +572,19 @@
 </div>
 
 <script>
+let currentMode = localStorage.getItem("appMode") || "fantasy";
+let currentModel = localStorage.getItem("appModel") || "gemini-2.5-flash";
+
 const log = document.getElementById("log");
 const form = document.getElementById("form");
 const input = document.getElementById("input");
 const fileInput = document.getElementById("fileInput");
 const attachmentPreview = document.getElementById("attachmentPreview");
 const attachmentName = document.getElementById("attachmentName");
+const modelSelect = document.getElementById("modelSelect");
+const promptsContainer = document.getElementById("promptsContainer");
+
+modelSelect.value = currentModel;
 
 fileInput.addEventListener("change", () => {
   if (fileInput.files && fileInput.files[0]) {
@@ -466,11 +600,80 @@ function removeAttachment() {
   attachmentPreview.style.display = "none";
 }
 
+function changeModel(val) {
+  currentModel = val;
+  localStorage.setItem("appModel", val);
+}
+
+const FANTASY_PROMPTS = [
+  { text: "🎲 Roll a d20 with a +5 strength modifier for my sword strike!", label: "🎲 Roll d20 (+5 Mod)" },
+  { text: "📜 What is my character status, health, and active campaign quests?", label: "📜 Character & Quest Log" },
+  { text: "🎨 Generate an epic visual illustration of a glowing ancient spell tome", label: "🎨 Generate Visual" },
+  { text: "🎬 Generate a short video demonstration of an enchanted flame sword", label: "🎬 Generate Video" },
+  { text: "🌿 Consult Culpeper's Herbal docs for remedies for dragon venom", label: "🌿 Consult Herbal Lore" }
+];
+
+const NORMAL_PROMPTS = [
+  { text: "📄 Summarize the key points and actionable items from my attached document", label: "📄 Summarize Document" },
+  { text: "💡 Brainstorm 5 innovative feature ideas for my project", label: "💡 Brainstorm Ideas" },
+  { text: "💻 Help me write and optimize clean code for my application", label: "💻 Write Clean Code" },
+  { text: "📝 Draft a concise, professional email summarizing our project progress", label: "📝 Draft Email" },
+  { text: "🔍 Explain complex quantum computing concepts in simple terms", label: "🔍 Explain Concept" }
+];
+
+function renderPrompts() {
+  promptsContainer.innerHTML = "";
+  const prompts = currentMode === "fantasy" ? FANTASY_PROMPTS : NORMAL_PROMPTS;
+  prompts.forEach(p => {
+    const chip = document.createElement("div");
+    chip.className = "prompt-chip";
+    chip.onclick = () => sendPrompt(p.text);
+    chip.innerHTML = `<span>${p.label}</span>`;
+    promptsContainer.appendChild(chip);
+  });
+}
+
+function switchMode(mode) {
+  currentMode = mode;
+  localStorage.setItem("appMode", mode);
+
+  const body = document.body;
+  const brandIcon = document.getElementById("brandIcon");
+  const brandTitle = document.getElementById("brandTitle");
+  const brandSubtitle = document.getElementById("brandSubtitle");
+  const modeFantasyBtn = document.getElementById("modeFantasyBtn");
+  const modeNormalBtn = document.getElementById("modeNormalBtn");
+
+  if (mode === "normal") {
+    body.className = "theme-normal";
+    brandIcon.textContent = "⚡";
+    brandTitle.textContent = "Omni Assistant";
+    brandSubtitle.textContent = "Smart AI Assistant";
+    input.placeholder = "Ask Omni Assistant or attach PDF / Doc / Photo...";
+    modeFantasyBtn.classList.remove("active");
+    modeNormalBtn.classList.add("active");
+  } else {
+    body.className = "theme-fantasy";
+    brandIcon.textContent = "🛡️";
+    brandTitle.textContent = "Fantasy DM";
+    brandSubtitle.textContent = "AI Campaign Companion";
+    input.placeholder = "Consult DM or attach PDF / Doc / Photo...";
+    modeNormalBtn.classList.remove("active");
+    modeFantasyBtn.classList.add("active");
+  }
+
+  renderPrompts();
+}
+
 function el(tag, cls, text) { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
 
 function bubble(who) {
   const m = el("div", "msg " + who);
-  const author = el("div", "msg-author", who === "user" ? "👤 You" : "🧙‍♂️ Dungeon Master");
+  let authorLabel = "👤 You";
+  if (who === "agent") {
+    authorLabel = currentMode === "fantasy" ? "🧙‍♂️ Dungeon Master" : "⚡ Omni Assistant";
+  }
+  const author = el("div", "msg-author", authorLabel);
   m.appendChild(author);
   const b = el("div", "bubble");
   m.appendChild(b); log.appendChild(m); log.scrollTop = log.scrollHeight;
@@ -484,7 +687,6 @@ function sendPrompt(promptText) {
 
 /* ----------------------------------------------------------------------------
  * A2UI renderer (v0.8 Basic Catalog).
- * Renders Card / Column / Row / Text / Divider / List / Image / Icon.
  * -------------------------------------------------------------------------- */
 
 function boundStr(v) {
@@ -607,6 +809,8 @@ form.addEventListener("submit", async (ev) => {
 
   const formData = new FormData();
   formData.append("message", text);
+  formData.append("mode", currentMode);
+  formData.append("model_name", currentModel);
   if (hasFile) {
     formData.append("file", fileInput.files[0]);
   }
@@ -626,6 +830,9 @@ form.addEventListener("submit", async (ev) => {
     b.textContent = "Error: " + e.message;
   }
 });
+
+// Initialize mode on page load
+switchMode(currentMode);
 </script>
 </body>
 </html>
