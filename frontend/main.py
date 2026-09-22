@@ -157,7 +157,7 @@ async def chat(
     message: str = Form(""),
     user_id: str = Form("web-user"),
     mode: str = Form("fantasy"),
-    model_name: str = Form("gemini-2.5-flash"),
+    model_name: str = Form("gemini-3.6-flash"),
     file: UploadFile | None = File(None),
 ):
     parts_to_send: list[Part] = []
