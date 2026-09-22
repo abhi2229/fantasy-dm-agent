@@ -18,6 +18,7 @@ The following features and Google Cloud Platform services are fully implemented 
 - **🎬 Video Generation (Gemini Omni Flash Preview)**: Generates short animated fantasy item video demonstrations using `gemini-omni-flash-preview` in the `global` region.
 - **☁️ Public Cloud Storage (GCS Bucket)**: Stores generated image and video assets in a public Google Cloud Storage bucket (`gs://qwiklabs-gcp-01-f419067f0d55-static-assets-bucket`) and returns public HTTPS URLs.
 - **📚 Vertex AI RAG Engine**: Grounded on Culpeper's Herbal knowledge corpus via `consult_herbal_docs` for ancient lore and remedy lookups.
+- **📄 Document & Photo Upload (PDF, Word DOC/DOCX, Images)**: Allows users to attach PDFs, Word documents, or photos/images directly in chat. Extracts text from documents and uploads photos to public Google Cloud Storage so the Gemini agent can analyze and incorporate them into the game.
 - **📦 Structured A2UI Surfaces**: Generates rich, compact A2UI card layouts (v0.8 Basic Catalog) rendered dynamically on the chat interface via an `after_model_callback`.
 - **💻 Agent Engine Sandbox Code Executor**: Safely executes Python code inside Google Cloud Agent Engine Sandbox for complex encounter calculations, stat adjustments, and dice probability.
 - **🎲 Game Mechanics & External Tools**:

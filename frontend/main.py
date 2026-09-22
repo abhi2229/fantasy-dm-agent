@@ -1,32 +1,16 @@
-"""Minimal FastAPI proxy for a deployed A2A agent (Agent Runtime, agents-cli 1.1.0+).
+"""FastAPI proxy for a deployed A2A agent with File & Document Upload support (PDF, DOC/DOCX, Images).
 
-The browser talks ONLY to this proxy (same origin, no CORS, no GCP creds in the
-browser). The proxy authenticates with Application Default Credentials and
-forwards chat to the deployed agent over the A2A protocol, returning replies as
-structured parts the chat UI knows how to show:
-
-  * {"kind": "text", "text": ...}  -> a normal chat bubble
-  * {"kind": "a2ui", "data": ...}  -> one A2UI message (beginRendering /
-    surfaceUpdate); static/index.html renders these as a card.
-
-Why A2A: agents-cli 1.1.0 (GA) deploys ADK agents to Agent Runtime as A2A agents
-and no longer registers the reasoning-engine operation schema the old
-`agent_engines.get(...).stream_query()` path relied on (operation_schemas() comes
-back empty). The container serves the A2A protocol over the Agent Engine HTTP
-passthrough, so this proxy fetches the agent's card and sends messages with the
-a2a-sdk client (the same path `agents-cli run --mode a2a` uses). This works for
-both A2A and plain ADK 1.1.0 deployments (the container serves A2A either way).
-
-Run:
-  pip install -r requirements.txt
-  export AGENT_ENGINE_RESOURCE_NAME="projects/.../locations/.../reasoningEngines/..."
-  export AGENT_DIRECTORY="app"   # your agent's app directory (agents-cli-manifest.yaml)
-  python main.py                 # -> http://localhost:8080
+The browser talks ONLY to this proxy (same origin, no CORS). The proxy accepts file uploads
+(PDFs, Word DOC/DOCX files, and Photos/Images), extracts or uploads them to Google Cloud Storage,
+and forwards them to the ADK A2A agent as TextParts or FileParts so Gemini can process them.
 """
 
 import os
 import uuid
-
+import io
+import pypdf
+import docx
+from google.cloud import storage
 import google.auth
 import google.auth.transport.requests
 import httpx
@@ -41,28 +25,24 @@ from a2a.types import (
     TextPart,
     TransportProtocol,
 )
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, Request, UploadFile, File, Form
 from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
 
 RESOURCE = os.environ["AGENT_ENGINE_RESOURCE_NAME"]
-# The agent's app directory (matches agent_directory in agents-cli-manifest.yaml).
 AGENT_DIRECTORY = os.environ.get("AGENT_DIRECTORY", "app")
-# Location is embedded in the resource name: projects/<p>/locations/<loc>/reasoningEngines/<id>.
 LOCATION = RESOURCE.split("/locations/")[1].split("/")[0]
+PROJECT_ID = RESOURCE.split("/projects/")[1].split("/")[0]
+BUCKET_NAME = f"{PROJECT_ID}-static-assets-bucket"
 
-# A2A endpoint for an Agent Runtime deployment, via the Agent Engine HTTP
-# passthrough. The card lives at the well-known path under this base.
 A2A_BASE = (
     f"https://{LOCATION}-aiplatform.googleapis.com/reasoningEngines/v1/"
     f"{RESOURCE}/api/a2a/{AGENT_DIRECTORY}"
 )
 A2A_CARD_URL = f"{A2A_BASE}/.well-known/agent-card.json"
 
-# The agent tags its A2UI data parts with this mime type.
 _A2UI_MIME = "application/json+a2ui"
 
-# One set of ADC credentials, refreshed per request (access tokens expire ~1h).
 _creds, _ = google.auth.default(
     scopes=["https://www.googleapis.com/auth/cloud-platform"]
 )
@@ -81,10 +61,6 @@ app = FastAPI()
 
 @app.exception_handler(Exception)
 async def _json_errors(request: Request, exc: Exception):
-    # Always return JSON so the browser never receives a plain-text 500 page
-    # (which shows up in the chat as "Unexpected token 'I', "Internal S"... is
-    # not valid JSON"). Any server-side failure now surfaces as a readable
-    # message in the chat bubble instead.
     return JSONResponse(
         status_code=200,
         content={
@@ -93,9 +69,7 @@ async def _json_errors(request: Request, exc: Exception):
     )
 
 
-# Reuse ONE A2A context per user so the agent remembers the conversation.
 _contexts: dict[str, str] = {}
-# Cache the agent card after the first fetch.
 _card: AgentCard | None = None
 
 
@@ -105,21 +79,12 @@ async def _get_card(client: httpx.AsyncClient) -> AgentCard:
         resp = await client.get(A2A_CARD_URL)
         resp.raise_for_status()
         card = AgentCard(**resp.json())
-        # Agent Runtime does not serve a public card URL, so point the client at
-        # the passthrough base for message sends.
         card.url = A2A_BASE
         _card = card
     return _card
 
 
 def _extract_parts(parts: list) -> list[dict]:
-    """Turn A2A response parts into structured parts for the chat UI.
-
-    Text parts pass through as {"kind": "text"}. A2UI data parts (tagged
-    application/json+a2ui) become {"kind": "a2ui", "data": <message>} so the UI
-    renders the card; each data part is one A2UI message (beginRendering or
-    surfaceUpdate).
-    """
     out: list[dict] = []
     for p in parts:
         root = getattr(p, "root", p)
@@ -137,11 +102,92 @@ def _extract_parts(parts: list) -> list[dict]:
     return out
 
 
+def _extract_text_from_pdf(contents: bytes) -> str:
+    try:
+        reader = pypdf.PdfReader(io.BytesIO(contents))
+        extracted = []
+        for idx, page in enumerate(reader.pages):
+            text = page.extract_text()
+            if text:
+                extracted.append(f"--- Page {idx + 1} ---\n{text}")
+        return "\n".join(extracted)
+    except Exception as e:
+        return f"[Error parsing PDF: {str(e)}]"
+
+
+def _extract_text_from_docx(contents: bytes) -> str:
+    try:
+        doc = docx.Document(io.BytesIO(contents))
+        paragraphs = [p.text for p in doc.paragraphs if p.text.strip()]
+        return "\n".join(paragraphs)
+    except Exception as e:
+        return f"[Error parsing DOCX document: {str(e)}]"
+
+
+def _upload_image_to_gcs(contents: bytes, filename: str, mime_type: str) -> str:
+    try:
+        gcs_client = storage.Client(project=PROJECT_ID)
+        bucket = gcs_client.bucket(BUCKET_NAME)
+        ext = filename.split(".")[-1] if "." in filename else "jpg"
+        blob_name = f"user_uploads/{uuid.uuid4()}.{ext}"
+        blob = bucket.blob(blob_name)
+        blob.upload_from_string(contents, content_type=mime_type)
+        return f"https://storage.googleapis.com/{BUCKET_NAME}/{blob_name}"
+    except Exception as e:
+        return f"[GCS Upload Error: {str(e)}]"
+
+
 @app.post("/chat")
-async def chat(req: Request):
-    body = await req.json()
-    message = body.get("message", "")
-    user_id = body.get("user_id") or "web-user"
+async def chat(
+    message: str = Form(""),
+    user_id: str = Form("web-user"),
+    file: UploadFile | None = File(None),
+):
+    parts_to_send: list[Part] = []
+    file_context_prompt = ""
+
+    if file and file.filename:
+        filename = file.filename
+        content_type = file.content_type or ""
+        contents = await file.read()
+
+        if filename.lower().endswith(".pdf") or "pdf" in content_type:
+            pdf_text = _extract_text_from_pdf(contents)
+            file_context_prompt = (
+                f"\n\n[USER ATTACHED PDF DOCUMENT: '{filename}']\n"
+                f"Document Content:\n{pdf_text[:8000]}\n[End of Document]\n"
+            )
+        elif (
+            filename.lower().endswith((".doc", ".docx"))
+            or "word" in content_type
+            or "officedocument" in content_type
+        ):
+            docx_text = _extract_text_from_docx(contents)
+            file_context_prompt = (
+                f"\n\n[USER ATTACHED WORD DOCUMENT: '{filename}']\n"
+                f"Document Content:\n{docx_text[:8000]}\n[End of Document]\n"
+            )
+        elif (
+            content_type.startswith("image/")
+            or filename.lower().endswith((".jpg", ".jpeg", ".png", ".webp", ".gif"))
+        ):
+            public_url = _upload_image_to_gcs(
+                contents, filename, content_type or "image/jpeg"
+            )
+            file_context_prompt = (
+                f"\n\n[USER ATTACHED PHOTO/IMAGE: '{filename}']\n"
+                f"Public Image URL: {public_url}\n"
+                f"Please analyze this image or incorporate it into the fantasy campaign/character context."
+            )
+        else:
+            file_context_prompt = f"\n\n[USER ATTACHED FILE: '{filename}']"
+
+    final_message_text = (message + file_context_prompt).strip()
+    if not final_message_text:
+        final_message_text = "Please examine my uploaded document/image."
+
+    parts_to_send.append(Part(root=TextPart(text=final_message_text)))
+
     parts: list[dict] = []
 
     async with httpx.AsyncClient(headers=_auth_headers(), timeout=120) as client:
@@ -160,7 +206,7 @@ async def chat(req: Request):
         msg = Message(
             message_id=str(uuid.uuid4()),
             role=Role.user,
-            parts=[Part(root=TextPart(text=message))],
+            parts=parts_to_send,
             context_id=_contexts.get(user_id),
         )
 
@@ -178,19 +224,15 @@ async def chat(req: Request):
                 got_artifact_update = True
                 parts.extend(_extract_parts(update.artifact.parts))
 
-        # Non-streaming fallback: pull parts from the final task's artifacts.
         if not got_artifact_update and last_task is not None:
             for artifact in getattr(last_task, "artifacts", None) or []:
                 parts.extend(_extract_parts(artifact.parts))
 
     if not parts:
-        # The turn produced no text or UI (e.g. the agent only ran tools, or a
-        # tool stalled). Be honest rather than silent.
         parts = [{"kind": "text", "text": "(The agent didn't return a reply.)"}]
     return JSONResponse({"parts": parts})
 
 
-# Serve the chat UI (keep this mount last so /chat wins).
 STATIC_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "static")
 app.mount("/", StaticFiles(directory=STATIC_DIR, html=True), name="static")
 

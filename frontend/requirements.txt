@@ -3,3 +3,6 @@ uvicorn[standard]
 a2a-sdk~=0.3.22
 httpx
 google-auth
+pypdf
+python-docx
+google-cloud-storage
