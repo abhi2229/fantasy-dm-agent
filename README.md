@@ -2,6 +2,8 @@
 
 An interactive tabletop roleplaying game (TTRPG) companion and Dungeon Master agent built using Google's Agent Development Kit (ADK), Gemini, and Google Cloud Platform. It manages immersive fantasy campaigns, tracks campaign quests in Firestore, generates custom item visual artwork and videos, performs D&D rules lookups, rolls dice, and provides structured A2UI card surfaces.
 
+🌐 **Live Web Application**: [https://fantasy-dm-frontend-lguu2mfnqq-uc.a.run.app](https://fantasy-dm-frontend-lguu2mfnqq-uc.a.run.app)
+
 ![Fantasy Dungeon Master Demo](agent_demo.gif)
 
 ---
