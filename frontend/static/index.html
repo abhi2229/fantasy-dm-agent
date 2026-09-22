@@ -3,33 +3,47 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-<title>AI Assistant & Fantasy DM</title>
-<!-- Google Fonts: MedievalSharp, Outfit & Inter -->
+<title>Omni AI Assistant & Fantasy Dungeon Master</title>
+<!-- Google Fonts: MedievalSharp, Outfit, Inter & Fira Code -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=MedievalSharp&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
-<!-- Material Symbols Outlined for icons -->
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0">
+<link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500&family=Inter:wght@300;400;500;600;700&family=MedievalSharp&family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<!-- Material Symbols Outlined -->
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200">
 <style>
   :root {
-    --accent: #f59e0b; /* Amber gold for fantasy theme */
-    --accent-gradient: linear-gradient(135deg, #f59e0b, #d97706);
-    --accent-glow: rgba(245, 158, 11, 0.35);
-    --bg-dark: #090d16;
-    --card-dark: #131b2e;
-    --border-dark: #23314d;
-    --text-main: #f8fafc;
+    /* Fantasy Theme Defaults */
+    --accent-primary: #f59e0b;
+    --accent-secondary: #d97706;
+    --accent-gradient: linear-gradient(135deg, #f59e0b 0%, #d97706 50%, #b45309 100%);
+    --accent-glow: rgba(245, 158, 11, 0.4);
+    --accent-subtle: rgba(245, 158, 11, 0.12);
+    --bg-dark: #070a14;
+    --panel-bg: rgba(15, 23, 42, 0.75);
+    --panel-border: rgba(245, 158, 11, 0.2);
+    --card-bg: rgba(22, 33, 58, 0.85);
+    --text-primary: #f8fafc;
     --text-muted: #94a3b8;
-    --user-bubble: linear-gradient(135deg, #d97706, #b45309);
+    --text-dim: #64748b;
+    --user-bubble: linear-gradient(135deg, #d97706 0%, #92400e 100%);
+    --agent-border: #f59e0b;
+    --header-height: 70px;
     --safe-bottom: env(safe-area-inset-bottom, 0px);
-    --header-height: 64px;
   }
 
   body.theme-normal {
-    --accent: #06b6d4; /* Cyber cyan / teal for normal AI assistant mode */
-    --accent-gradient: linear-gradient(135deg, #06b6d4, #0284c7);
-    --accent-glow: rgba(6, 182, 212, 0.35);
-    --user-bubble: linear-gradient(135deg, #0284c7, #0369a1);
+    /* Normal AI Mode Tokens */
+    --accent-primary: #06b6d4;
+    --accent-secondary: #0284c7;
+    --accent-gradient: linear-gradient(135deg, #06b6d4 0%, #0284c7 50%, #0369a1 100%);
+    --accent-glow: rgba(6, 182, 212, 0.4);
+    --accent-subtle: rgba(6, 182, 212, 0.12);
+    --bg-dark: #060913;
+    --panel-bg: rgba(15, 23, 42, 0.75);
+    --panel-border: rgba(6, 182, 212, 0.25);
+    --card-bg: rgba(15, 23, 42, 0.85);
+    --user-bubble: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
+    --agent-border: #06b6d4;
   }
 
   * {
@@ -45,186 +59,303 @@
     overflow: hidden;
     font-family: 'Outfit', 'Inter', system-ui, -apple-system, sans-serif;
     background: var(--bg-dark);
-    color: var(--text-main);
-    transition: background 0.3s ease;
+    color: var(--text-primary);
+    transition: background-color 0.4s ease, color 0.4s ease;
   }
 
-  body.theme-fantasy {
-    background-image: 
-      radial-gradient(circle at 50% 0%, #1e1b4b 0%, transparent 60%),
-      radial-gradient(circle at 100% 100%, #172554 0%, transparent 50%),
-      radial-gradient(circle at 0% 100%, #31103f 0%, #090d16 80%);
-    background-attachment: fixed;
+  /* Animated Ambient Glow Canvas Background */
+  .ambient-bg {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    pointer-events: none;
+    z-index: 0;
+    transition: opacity 0.5s ease;
   }
 
-  body.theme-normal {
-    background-image: 
-      radial-gradient(circle at 50% 0%, #082f49 0%, transparent 60%),
-      radial-gradient(circle at 100% 100%, #0f172a 0%, transparent 50%),
-      radial-gradient(circle at 0% 100%, #164e63 0%, #090d16 80%);
-    background-attachment: fixed;
+  body.theme-fantasy .ambient-bg {
+    background: 
+      radial-gradient(circle at 20% 0%, rgba(124, 58, 237, 0.22) 0%, transparent 50%),
+      radial-gradient(circle at 80% 100%, rgba(245, 158, 11, 0.18) 0%, transparent 50%),
+      radial-gradient(circle at 50% 50%, rgba(30, 27, 75, 0.4) 0%, rgba(7, 10, 20, 1) 100%);
+  }
+
+  body.theme-normal .ambient-bg {
+    background: 
+      radial-gradient(circle at 20% 0%, rgba(6, 182, 212, 0.22) 0%, transparent 50%),
+      radial-gradient(circle at 80% 100%, rgba(16, 185, 129, 0.18) 0%, transparent 50%),
+      radial-gradient(circle at 50% 50%, rgba(15, 23, 42, 0.5) 0%, rgba(6, 9, 19, 1) 100%);
   }
 
   body {
     display: flex;
     flex-direction: column;
+    position: relative;
+    z-index: 1;
   }
 
-  /* Header */
+  /* Custom Sleek Scrollbar */
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: rgba(148, 163, 184, 0.25);
+    border-radius: 4px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: var(--accent-primary);
+  }
+
+  /* Header Bar */
   header {
     height: var(--header-height);
-    background: rgba(13, 19, 33, 0.88);
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-    padding: 0 1rem;
+    background: rgba(11, 16, 28, 0.82);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-bottom: 1px solid var(--panel-border);
+    padding: 0 1.25rem;
     display: flex;
     align-items: center;
     justify-content: space-between;
-    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.5);
-    z-index: 10;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
+    z-index: 20;
     flex-shrink: 0;
-    gap: 0.5rem;
+    gap: 0.75rem;
+    transition: border-color 0.4s ease;
   }
 
-  .brand {
+  .brand-group {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+
+  .brand-avatar {
+    width: 42px;
+    height: 42px;
+    border-radius: 14px;
+    background: var(--accent-gradient);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.4rem;
+    box-shadow: 0 0 16px var(--accent-glow);
+    transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+
+  .brand-avatar:hover {
+    transform: scale(1.08) rotate(4deg);
+  }
+
+  .brand-info {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .brand-title-row {
     display: flex;
     align-items: center;
     gap: 0.5rem;
-    cursor: default;
-  }
-
-  .brand-icon {
-    font-size: 1.5rem;
   }
 
   .brand-title {
     font-size: 1.25rem;
     font-weight: 700;
-    letter-spacing: 0.02em;
-    color: var(--text-main);
+    letter-spacing: -0.01em;
+    line-height: 1.2;
+    transition: all 0.3s ease;
   }
 
   body.theme-fantasy .brand-title {
     font-family: 'MedievalSharp', cursive;
     color: #fcd34d;
-    text-shadow: 0 0 12px rgba(245, 158, 11, 0.4);
+    text-shadow: 0 0 14px rgba(245, 158, 11, 0.5);
   }
 
   body.theme-normal .brand-title {
     font-family: 'Outfit', sans-serif;
     color: #38bdf8;
-    text-shadow: 0 0 12px rgba(56, 189, 248, 0.4);
+    text-shadow: 0 0 14px rgba(56, 189, 248, 0.5);
   }
 
-  header .subtitle {
-    font-family: 'Outfit', sans-serif;
+  .status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
     font-size: 0.7rem;
-    color: var(--text-muted);
     font-weight: 500;
-    background: rgba(30, 41, 59, 0.7);
-    padding: 0.2rem 0.5rem;
-    border-radius: 8px;
-    border: 1px solid var(--border-dark);
+    color: var(--text-muted);
+    background: var(--accent-subtle);
+    border: 1px solid var(--panel-border);
+    padding: 0.15rem 0.5rem;
+    border-radius: 12px;
+    line-height: 1.4;
   }
 
-  /* Controls (Mode Switcher & Model Selector) */
-  .header-controls {
+  .status-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: #10b981;
+    box-shadow: 0 0 8px #10b981;
+    animation: pulseDot 2s infinite;
+  }
+
+  @keyframes pulseDot {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.5; transform: scale(0.8); }
+  }
+
+  /* Header Controls */
+  .controls-group {
     display: flex;
     align-items: center;
-    gap: 0.5rem;
+    gap: 0.65rem;
   }
 
-  /* Mode Switcher Pill Segmented Toggle */
-  .mode-switcher {
+  /* Segmented Mode Switcher */
+  .segmented-control {
     display: flex;
-    background: rgba(15, 23, 42, 0.9);
-    border: 1px solid var(--border-dark);
+    position: relative;
+    background: rgba(7, 10, 20, 0.85);
+    border: 1px solid var(--panel-border);
     padding: 3px;
     border-radius: 20px;
-    gap: 2px;
+    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.5);
   }
 
-  .mode-btn {
+  .segmented-btn {
     border: none;
     background: transparent;
     color: var(--text-muted);
-    padding: 0.35rem 0.65rem;
+    padding: 0.4rem 0.75rem;
     border-radius: 16px;
-    font-size: 0.75rem;
+    font-size: 0.78rem;
     font-weight: 600;
     cursor: pointer;
     display: flex;
     align-items: center;
-    gap: 0.3rem;
-    transition: all 0.2s ease;
-    box-shadow: none;
+    gap: 0.35rem;
+    transition: all 0.25s ease;
+    z-index: 1;
+    font-family: 'Outfit', sans-serif;
   }
 
-  .mode-btn.active {
+  .segmented-btn:hover {
+    color: var(--text-primary);
+  }
+
+  .segmented-btn.active {
     background: var(--accent-gradient);
     color: #ffffff;
-    box-shadow: 0 2px 8px var(--accent-glow);
+    box-shadow: 0 2px 10px var(--accent-glow);
   }
 
-  /* Model Selector Dropdown */
-  .model-selector-wrapper {
+  /* Styled Model Selector Dropdown */
+  .model-picker {
     display: flex;
     align-items: center;
-    gap: 0.3rem;
-    background: rgba(15, 23, 42, 0.9);
-    border: 1px solid var(--border-dark);
-    padding: 0.3rem 0.5rem;
-    border-radius: 16px;
+    gap: 0.4rem;
+    background: rgba(7, 10, 20, 0.85);
+    border: 1px solid var(--panel-border);
+    padding: 0.35rem 0.65rem;
+    border-radius: 18px;
+    transition: all 0.25s ease;
   }
 
-  .model-selector-wrapper .model-icon {
-    font-size: 1rem;
-    color: var(--accent);
+  .model-picker:hover {
+    border-color: var(--accent-primary);
+    box-shadow: 0 0 12px var(--accent-glow);
+  }
+
+  .model-picker .material-symbols-outlined {
+    font-size: 1.05rem;
+    color: var(--accent-primary);
   }
 
   select#modelSelect {
     background: transparent;
     border: none;
-    color: var(--text-main);
-    font-size: 0.75rem;
+    color: var(--text-primary);
+    font-size: 0.78rem;
     font-weight: 600;
-    font-family: inherit;
+    font-family: 'Outfit', sans-serif;
     outline: none;
     cursor: pointer;
-    padding-right: 0.2rem;
   }
 
   select#modelSelect option {
-    background: #0f172a;
+    background: #0b101c;
     color: #f8fafc;
   }
 
-  /* Chat Log Area */
+  /* Main Chat Stream Container */
   #log {
     flex: 1;
     overflow-y: auto;
-    padding: 1rem;
-    max-width: 860px;
+    padding: 1.25rem 1rem;
+    max-width: 900px;
     width: 100%;
     margin: 0 auto;
     display: flex;
     flex-direction: column;
-    gap: 1.25rem;
+    gap: 1.5rem;
     scroll-behavior: smooth;
     -webkit-overflow-scrolling: touch;
   }
 
+  /* Welcome Hero Card for Empty Log */
+  .welcome-card {
+    background: var(--card-bg);
+    backdrop-filter: blur(16px);
+    border: 1px solid var(--panel-border);
+    border-radius: 24px;
+    padding: 2rem 1.5rem;
+    text-align: center;
+    margin: auto 0;
+    box-shadow: 0 12px 36px rgba(0, 0, 0, 0.5);
+    animation: fadeIn 0.4s ease-out;
+  }
+
+  .welcome-icon {
+    font-size: 3rem;
+    margin-bottom: 0.75rem;
+    display: inline-block;
+    filter: drop-shadow(0 0 16px var(--accent-glow));
+  }
+
+  .welcome-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+    color: var(--text-primary);
+  }
+
+  .welcome-desc {
+    font-size: 0.9rem;
+    color: var(--text-muted);
+    max-width: 540px;
+    margin: 0 auto 1.25rem auto;
+    line-height: 1.6;
+  }
+
+  /* Chat Messages */
   .msg {
     display: flex;
     flex-direction: column;
     align-items: flex-start;
     width: 100%;
-    animation: fadeIn 0.25s ease-out forwards;
+    animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
   }
 
-  @keyframes fadeIn {
-    from { opacity: 0; transform: translateY(8px); }
+  @keyframes slideUp {
+    from { opacity: 0; transform: translateY(12px); }
     to { opacity: 1; transform: translateY(0); }
   }
 
@@ -232,32 +363,39 @@
     align-items: flex-end;
   }
 
-  .msg-author {
+  .msg-header {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
     font-size: 0.75rem;
     color: var(--text-muted);
     margin-bottom: 0.35rem;
     padding: 0 0.5rem;
     font-weight: 600;
-    display: flex;
+  }
+
+  .msg-avatar-tag {
+    display: inline-flex;
     align-items: center;
-    gap: 0.35rem;
+    gap: 0.3rem;
   }
 
   .bubble {
     display: inline-block;
-    padding: 0.9rem 1.15rem;
-    border-radius: 18px;
-    background: rgba(19, 27, 46, 0.85);
-    backdrop-filter: blur(8px);
-    border: 1px solid var(--border-dark);
-    color: var(--text-main);
+    padding: 1rem 1.25rem;
+    border-radius: 20px;
+    background: var(--card-bg);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid var(--panel-border);
+    color: var(--text-primary);
     text-align: left;
-    max-width: 88%;
-    line-height: 1.6;
+    max-width: 86%;
+    line-height: 1.65;
     font-size: 0.95rem;
     white-space: pre-wrap;
     word-break: break-word;
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.35);
   }
 
   .msg.user .bubble {
@@ -265,12 +403,12 @@
     color: #ffffff;
     border: none;
     border-bottom-right-radius: 4px;
-    box-shadow: 0 4px 16px var(--accent-glow);
+    box-shadow: 0 6px 24px var(--accent-glow);
   }
 
   .msg.agent .bubble {
     border-bottom-left-radius: 4px;
-    border-left: 3px solid var(--accent);
+    border-left: 3px solid var(--agent-border);
   }
 
   .bubble.rich {
@@ -283,255 +421,350 @@
     width: 100%;
   }
 
-  /* Attachment Pill Badge */
+  /* Animated Typing Loading Indicator */
+  .typing-indicator {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.75rem 1.1rem;
+  }
+
+  .typing-indicator span {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--accent-primary);
+    animation: typingWave 1.4s infinite ease-in-out both;
+  }
+
+  .typing-indicator span:nth-child(1) { animation-delay: -0.32s; }
+  .typing-indicator span:nth-child(2) { animation-delay: -0.16s; }
+
+  @keyframes typingWave {
+    0%, 80%, 100% { transform: scale(0.6); opacity: 0.4; }
+    40% { transform: scale(1.1); opacity: 1; }
+  }
+
+  /* Attachment Card Overlay */
   .attachment-preview {
-    max-width: 860px;
+    max-width: 900px;
     width: 100%;
     margin: 0 auto;
-    padding: 0.4rem 1rem 0 1rem;
+    padding: 0.5rem 1rem 0 1rem;
     display: none;
     align-items: center;
-    gap: 0.5rem;
+    gap: 0.6rem;
   }
 
   .attachment-badge {
-    background: rgba(30, 41, 59, 0.9);
-    border: 1px solid var(--accent);
-    color: var(--accent);
-    padding: 0.35rem 0.75rem;
+    background: rgba(15, 23, 42, 0.95);
+    border: 1px solid var(--accent-primary);
+    color: var(--accent-primary);
+    padding: 0.4rem 0.85rem;
     border-radius: 16px;
-    font-size: 0.8rem;
-    font-weight: 500;
+    font-size: 0.825rem;
+    font-weight: 600;
     display: flex;
     align-items: center;
-    gap: 0.4rem;
+    gap: 0.5rem;
+    box-shadow: 0 4px 16px var(--accent-glow);
   }
 
   .attachment-remove {
     cursor: pointer;
     color: #ef4444;
     font-weight: bold;
-    margin-left: 0.2rem;
+    margin-left: 0.3rem;
+    padding: 0 0.2rem;
+    transition: transform 0.2s ease;
   }
 
-  /* Quick Action Prompts Horizontal Carousel */
-  .prompts-container {
-    max-width: 860px;
+  .attachment-remove:hover {
+    transform: scale(1.2);
+  }
+
+  /* Drag & Drop Visual Overlay */
+  .drag-overlay {
+    position: fixed;
+    top: 0; left: 0; width: 100vw; height: 100vh;
+    background: rgba(6, 9, 19, 0.85);
+    backdrop-filter: blur(16px);
+    z-index: 100;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    gap: 1rem;
+    border: 3px dashed var(--accent-primary);
+  }
+
+  .drag-overlay.active {
+    display: flex;
+  }
+
+  .drag-icon {
+    font-size: 4rem;
+    color: var(--accent-primary);
+    animation: bounce 1s infinite alternate;
+  }
+
+  @keyframes bounce {
+    from { transform: translateY(0); }
+    to { transform: translateY(-12px); }
+  }
+
+  /* Quick Prompts Carousel */
+  .prompts-carousel {
+    max-width: 900px;
     width: 100%;
     margin: 0 auto;
     padding: 0.4rem 1rem;
     display: flex;
-    gap: 0.6rem;
+    gap: 0.65rem;
     overflow-x: auto;
     scrollbar-width: none;
     -ms-overflow-style: none;
     flex-shrink: 0;
   }
 
-  .prompts-container::-webkit-scrollbar {
+  .prompts-carousel::-webkit-scrollbar {
     display: none;
   }
 
   .prompt-chip {
-    background: rgba(19, 27, 46, 0.9);
-    border: 1px solid var(--border-dark);
-    color: var(--text-main);
-    padding: 0.55rem 0.95rem;
-    border-radius: 24px;
+    background: rgba(15, 23, 42, 0.85);
+    border: 1px solid var(--panel-border);
+    color: var(--text-primary);
+    padding: 0.55rem 1rem;
+    border-radius: 20px;
     font-size: 0.825rem;
     font-weight: 500;
     cursor: pointer;
     white-space: nowrap;
-    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
     display: flex;
     align-items: center;
     gap: 0.4rem;
     flex-shrink: 0;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
   }
 
-  .prompt-chip:active, .prompt-chip:hover {
-    background: #1e293b;
-    border-color: var(--accent);
+  .prompt-chip:hover {
+    background: rgba(30, 41, 59, 0.95);
+    border-color: var(--accent-primary);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px var(--accent-glow);
+  }
+
+  .prompt-chip:active {
     transform: scale(0.97);
-    color: #ffffff;
-    box-shadow: 0 0 12px var(--accent-glow);
   }
 
-  /* Bottom Sticky Form Container */
-  .footer-container {
-    background: rgba(9, 13, 22, 0.92);
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
-    border-top: 1px solid var(--border-dark);
-    padding: 0.6rem 1rem calc(0.6rem + var(--safe-bottom)) 1rem;
+  /* Sticky Footer Form */
+  footer {
+    background: rgba(11, 16, 28, 0.92);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-top: 1px solid var(--panel-border);
+    padding: 0.65rem 1rem calc(0.65rem + var(--safe-bottom)) 1rem;
     flex-shrink: 0;
+    z-index: 20;
+    transition: border-color 0.4s ease;
   }
 
-  form {
+  form#form {
     display: flex;
-    gap: 0.6rem;
-    max-width: 860px;
+    gap: 0.65rem;
+    max-width: 900px;
     margin: 0 auto;
     align-items: center;
   }
 
-  .upload-btn-label {
-    padding: 0.85rem;
-    border: 1px solid var(--border-dark);
+  .upload-btn {
+    width: 48px;
+    height: 48px;
+    border: 1px solid var(--panel-border);
     border-radius: 16px;
-    background: rgba(19, 27, 46, 0.8);
-    color: var(--accent);
+    background: rgba(15, 23, 42, 0.85);
+    color: var(--accent-primary);
     cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
-    transition: all 0.2s ease;
+    transition: all 0.25s ease;
     flex-shrink: 0;
   }
 
-  .upload-btn-label:hover {
-    background: #1e293b;
-    border-color: var(--accent);
+  .upload-btn:hover {
+    background: rgba(30, 41, 59, 0.95);
+    border-color: var(--accent-primary);
+    box-shadow: 0 0 12px var(--accent-glow);
   }
 
   input[type="file"] {
     display: none;
   }
 
-  input[type="text"] {
+  .input-wrapper {
     flex: 1;
-    padding: 0.85rem 1.15rem;
-    border: 1px solid var(--border-dark);
-    border-radius: 16px;
+    position: relative;
+    display: flex;
+    align-items: center;
+  }
+
+  input[type="text"] {
+    width: 100%;
+    padding: 0.85rem 1.25rem;
+    border: 1px solid var(--panel-border);
+    border-radius: 18px;
     font-size: 0.95rem;
-    font-family: inherit;
-    background: rgba(19, 27, 46, 0.8);
-    color: var(--text-main);
+    font-family: 'Outfit', sans-serif;
+    background: rgba(15, 23, 42, 0.85);
+    color: var(--text-primary);
     outline: none;
-    transition: all 0.2s ease;
+    transition: all 0.25s ease;
   }
 
   input[type="text"]:focus {
-    border-color: var(--accent);
-    background: rgba(19, 27, 46, 0.95);
-    box-shadow: 0 0 0 3px var(--accent-glow);
+    border-color: var(--accent-primary);
+    background: rgba(15, 23, 42, 0.98);
+    box-shadow: 0 0 0 4px var(--accent-subtle);
   }
 
   button#sendBtn {
-    padding: 0.85rem 1.35rem;
+    height: 48px;
+    padding: 0 1.35rem;
     border: none;
     border-radius: 16px;
     background: var(--accent-gradient);
-    color: #fff;
+    color: #ffffff;
     font-weight: 600;
     font-size: 0.95rem;
-    font-family: inherit;
+    font-family: 'Outfit', sans-serif;
     cursor: pointer;
-    transition: all 0.2s ease;
-    box-shadow: 0 4px 12px var(--accent-glow);
+    transition: all 0.25s ease;
+    box-shadow: 0 4px 16px var(--accent-glow);
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 0.4rem;
+    gap: 0.45rem;
     flex-shrink: 0;
   }
 
-  button#sendBtn:active, button#sendBtn:hover {
-    transform: scale(0.97);
-    box-shadow: 0 2px 8px var(--accent-glow);
+  button#sendBtn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 20px var(--accent-glow);
   }
 
-  /* Responsive Mobile Layout */
+  button#sendBtn:active {
+    transform: scale(0.97);
+  }
+
+  /* Responsive Mobile Tweaks */
   @media (max-width: 640px) {
     header {
-      padding: 0 0.5rem;
+      padding: 0 0.75rem;
+    }
+    .brand-avatar {
+      width: 36px;
+      height: 36px;
+      font-size: 1.2rem;
     }
     .brand-title {
       font-size: 1.1rem;
     }
-    .subtitle {
+    .status-badge {
       display: none;
     }
-    .mode-text {
+    .segmented-btn span.btn-label {
       display: none;
     }
-    .mode-btn {
-      padding: 0.35rem 0.5rem;
+    .segmented-btn {
+      padding: 0.4rem 0.55rem;
     }
     select#modelSelect {
-      font-size: 0.7rem;
-      max-width: 100px;
+      font-size: 0.72rem;
+      max-width: 90px;
     }
     .bubble {
       max-width: 92%;
       font-size: 0.9rem;
-      padding: 0.75rem 1rem;
+      padding: 0.85rem 1rem;
     }
     #log {
-      padding: 0.75rem 0.5rem 1rem 0.5rem;
+      padding: 0.85rem 0.65rem 1rem 0.65rem;
     }
     button#sendBtn span.btn-text {
       display: none;
     }
     button#sendBtn {
-      padding: 0.85rem 1rem;
-      border-radius: 14px;
-    }
-    input[type="text"] {
-      border-radius: 14px;
-      padding: 0.8rem 1rem;
+      padding: 0 1rem;
     }
   }
 
-  /* A2UI Surface Components */
+  /* A2UI Surfaces */
   .a2card {
-    border: 1px solid var(--border-dark);
-    border-radius: 16px;
-    padding: 1.2rem;
-    background: rgba(19, 27, 46, 0.95);
-    box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+    border: 1px solid var(--panel-border);
+    border-radius: 20px;
+    padding: 1.25rem;
+    background: rgba(15, 23, 42, 0.92);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
     max-width: 100%;
-    color: var(--text-main);
+    color: var(--text-primary);
   }
-  .a2card + .a2card, .a2col > .a2card { margin-top: 0.75rem; }
-  .a2col { display: flex; flex-direction: column; gap: 0.6rem; }
+  .a2card + .a2card, .a2col > .a2card { margin-top: 0.85rem; }
+  .a2col { display: flex; flex-direction: column; gap: 0.65rem; }
   .a2row { display: flex; flex-direction: row; gap: 0.75rem; align-items: center; flex-wrap: wrap; }
   .a2row.between { justify-content: space-between; }
   .a2text { margin: 0; line-height: 1.5; }
-  .a2text.a2-h1 { font-size: 1.35rem; font-weight: 700; color: var(--accent); }
-  .a2text.a2-h2 { font-size: 1.15rem; font-weight: 700; color: var(--accent); }
-  .a2text.a2-h3 { font-size: 1.05rem; font-weight: 600; color: var(--accent); }
+  .a2text.a2-h1 { font-size: 1.35rem; font-weight: 700; color: var(--accent-primary); }
+  .a2text.a2-h2 { font-size: 1.15rem; font-weight: 700; color: var(--accent-primary); }
+  .a2text.a2-h3 { font-size: 1.05rem; font-weight: 600; color: var(--accent-primary); }
   .a2text.a2-h4 { font-size: 0.95rem; font-weight: 600; }
   .a2text.a2-caption { font-size: 0.825rem; color: var(--text-muted); }
-  .a2divider { border: none; border-top: 1px solid var(--border-dark); margin: 0.6rem 0; width: 100%; }
-  .a2img { max-width: 100%; border-radius: 12px; display: block; border: 1px solid var(--border-dark); box-shadow: 0 4px 16px rgba(0,0,0,0.3); }
-  .material-symbols-outlined { font-family: 'Material Symbols Outlined'; font-size: 1.25rem; line-height: 1; vertical-align: middle; color: var(--accent); }
+  .a2divider { border: none; border-top: 1px solid var(--panel-border); margin: 0.75rem 0; width: 100%; }
+  .a2img { max-width: 100%; border-radius: 14px; display: block; border: 1px solid var(--panel-border); box-shadow: 0 6px 20px rgba(0,0,0,0.4); }
+  .material-symbols-outlined { font-family: 'Material Symbols Outlined'; font-size: 1.2rem; line-height: 1; vertical-align: middle; }
 </style>
 </head>
 <body class="theme-fantasy">
 
+<!-- Dynamic Ambient Glow Background -->
+<div class="ambient-bg"></div>
+
+<!-- Drag & Drop Visual Overlay -->
+<div class="drag-overlay" id="dragOverlay">
+  <span class="material-symbols-outlined drag-icon">cloud_upload</span>
+  <div style="font-size:1.5rem; font-weight:700;">Drop Document or Photo Here</div>
+  <div style="color:var(--text-muted);">PDF, Word DOCX, PNG, JPG supported</div>
+</div>
+
+<!-- Header Bar -->
 <header>
-  <div class="brand">
-    <span class="brand-icon" id="brandIcon">🛡️</span>
-    <span class="brand-title" id="brandTitle">Fantasy DM</span>
-    <span class="subtitle" id="brandSubtitle">AI Campaign Companion</span>
+  <div class="brand-group">
+    <div class="brand-avatar" id="brandAvatar">🧙‍♂️</div>
+    <div class="brand-info">
+      <div class="brand-title-row">
+        <span class="brand-title" id="brandTitle">Fantasy DM</span>
+        <span class="status-badge"><span class="status-dot"></span> Ready</span>
+      </div>
+    </div>
   </div>
 
-  <div class="header-controls">
-    <!-- Mode Switcher Pill Toggle -->
-    <div class="mode-switcher">
-      <button id="modeFantasyBtn" class="mode-btn active" onclick="switchMode('fantasy')">
-        <span>🔮</span> <span class="mode-text">Fantasy DM</span>
+  <div class="controls-group">
+    <!-- Mode Switcher Pill Segmented Toggle -->
+    <div class="segmented-control">
+      <button id="modeFantasyBtn" class="segmented-btn active" onclick="switchMode('fantasy')">
+        <span>🔮</span> <span class="btn-label">Fantasy DM</span>
       </button>
-      <button id="modeNormalBtn" class="mode-btn" onclick="switchMode('normal')">
-        <span>⚡</span> <span class="mode-text">Normal AI</span>
+      <button id="modeNormalBtn" class="segmented-btn" onclick="switchMode('normal')">
+        <span>⚡</span> <span class="btn-label">Normal AI</span>
       </button>
     </div>
 
-    <!-- AI Model Selector -->
-    <div class="model-selector-wrapper" title="Select Gemini AI Model">
-      <span class="material-symbols-outlined model-icon">smart_toy</span>
+    <!-- AI Model Picker Dropdown -->
+    <div class="model-picker" title="Select Gemini AI Model">
+      <span class="material-symbols-outlined">smart_toy</span>
       <select id="modelSelect" onchange="changeModel(this.value)">
         <option value="gemini-2.5-flash">Gemini 2.5 Flash</option>
         <option value="gemini-2.5-pro">Gemini 2.5 Pro</option>
@@ -542,38 +775,53 @@
   </div>
 </header>
 
-<div id="log"></div>
+<!-- Chat Stream Area -->
+<div id="log">
+  <!-- Welcome Hero Card (Auto-removed on first message) -->
+  <div class="welcome-card" id="welcomeCard">
+    <div class="welcome-icon" id="welcomeIcon">🛡️</div>
+    <div class="welcome-title" id="welcomeTitle">Welcome to Fantasy DM Engine</div>
+    <div class="welcome-desc" id="welcomeDesc">
+      Your interactive campaign companion powered by Gemini AI & Agent Platform. Explore quests, roll virtual dice, request magic item visual artwork, or attach documents/photos for instant AI analysis.
+    </div>
+  </div>
+</div>
 
+<!-- File Attachment Pill Preview -->
 <div class="attachment-preview" id="attachmentPreview">
   <div class="attachment-badge">
-    <span class="material-symbols-outlined" style="font-size:1rem;">attach_file</span>
+    <span class="material-symbols-outlined">attach_file</span>
     <span id="attachmentName">file.pdf</span>
     <span class="attachment-remove" onclick="removeAttachment()">✕</span>
   </div>
 </div>
 
-<div class="footer-container">
-  <!-- Interactive Prompt Carousel -->
-  <div class="prompts-container" id="promptsContainer">
-    <!-- Rendered dynamically based on mode -->
+<!-- Footer Input Container -->
+<footer>
+  <!-- Quick Action Prompts Carousel -->
+  <div class="prompts-carousel" id="promptsContainer">
+    <!-- Rendered dynamically via JS -->
   </div>
 
   <form id="form">
-    <label class="upload-btn-label" title="Attach PDF, Word Doc, or Photo">
-      <span class="material-symbols-outlined" style="font-size:1.25rem;">attach_file</span>
+    <label class="upload-btn" title="Attach PDF, Word Doc, or Photo">
+      <span class="material-symbols-outlined">attach_file</span>
       <input type="file" id="fileInput" accept=".pdf,.doc,.docx,image/*">
     </label>
-    <input type="text" id="input" placeholder="Consult DM or attach PDF / Doc / Photo..." autocomplete="off" autofocus>
+    <div class="input-wrapper">
+      <input type="text" id="input" placeholder="Consult DM or attach PDF / Doc / Photo..." autocomplete="off" autofocus>
+    </div>
     <button id="sendBtn">
       <span class="btn-text">Send</span>
-      <span class="material-symbols-outlined" style="font-size:1.1rem; color:#fff;">send</span>
+      <span class="material-symbols-outlined">send</span>
     </button>
   </form>
-</div>
+</footer>
 
 <script>
 let currentMode = localStorage.getItem("appMode") || "fantasy";
 let currentModel = localStorage.getItem("appModel") || "gemini-2.5-flash";
+let isFirstMessage = true;
 
 const log = document.getElementById("log");
 const form = document.getElementById("form");
@@ -583,17 +831,33 @@ const attachmentPreview = document.getElementById("attachmentPreview");
 const attachmentName = document.getElementById("attachmentName");
 const modelSelect = document.getElementById("modelSelect");
 const promptsContainer = document.getElementById("promptsContainer");
+const welcomeCard = document.getElementById("welcomeCard");
+const dragOverlay = document.getElementById("dragOverlay");
 
 modelSelect.value = currentModel;
 
-fileInput.addEventListener("change", () => {
+// Drag & Drop File Upload Handlers
+window.addEventListener("dragover", (e) => { e.preventDefault(); dragOverlay.classList.add("active"); });
+window.addEventListener("dragleave", (e) => { if (e.clientX <= 0 || e.clientY <= 0) dragOverlay.classList.remove("active"); });
+window.addEventListener("drop", (e) => {
+  e.preventDefault();
+  dragOverlay.classList.remove("active");
+  if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+    fileInput.files = e.dataTransfer.files;
+    updateAttachmentUI();
+  }
+});
+
+fileInput.addEventListener("change", updateAttachmentUI);
+
+function updateAttachmentUI() {
   if (fileInput.files && fileInput.files[0]) {
     attachmentName.textContent = fileInput.files[0].name;
     attachmentPreview.style.display = "flex";
   } else {
     removeAttachment();
   }
-});
+}
 
 function removeAttachment() {
   fileInput.value = "";
@@ -638,28 +902,40 @@ function switchMode(mode) {
   localStorage.setItem("appMode", mode);
 
   const body = document.body;
-  const brandIcon = document.getElementById("brandIcon");
+  const brandAvatar = document.getElementById("brandAvatar");
   const brandTitle = document.getElementById("brandTitle");
-  const brandSubtitle = document.getElementById("brandSubtitle");
   const modeFantasyBtn = document.getElementById("modeFantasyBtn");
   const modeNormalBtn = document.getElementById("modeNormalBtn");
+  const welcomeIcon = document.getElementById("welcomeIcon");
+  const welcomeTitle = document.getElementById("welcomeTitle");
+  const welcomeDesc = document.getElementById("welcomeDesc");
 
   if (mode === "normal") {
     body.className = "theme-normal";
-    brandIcon.textContent = "⚡";
+    brandAvatar.textContent = "⚡";
     brandTitle.textContent = "Omni Assistant";
-    brandSubtitle.textContent = "Smart AI Assistant";
     input.placeholder = "Ask Omni Assistant or attach PDF / Doc / Photo...";
     modeFantasyBtn.classList.remove("active");
     modeNormalBtn.classList.add("active");
+
+    if (welcomeTitle) {
+      welcomeIcon.textContent = "⚡";
+      welcomeTitle.textContent = "Welcome to Omni AI Assistant";
+      welcomeDesc.textContent = "Your versatile, high-intelligence AI companion. Analyze documents, brainstorm ideas, write clean code, or solve complex questions with multimodal AI.";
+    }
   } else {
     body.className = "theme-fantasy";
-    brandIcon.textContent = "🛡️";
+    brandAvatar.textContent = "🧙‍♂️";
     brandTitle.textContent = "Fantasy DM";
-    brandSubtitle.textContent = "AI Campaign Companion";
     input.placeholder = "Consult DM or attach PDF / Doc / Photo...";
     modeNormalBtn.classList.remove("active");
     modeFantasyBtn.classList.add("active");
+
+    if (welcomeTitle) {
+      welcomeIcon.textContent = "🛡️";
+      welcomeTitle.textContent = "Welcome to Fantasy DM Engine";
+      welcomeDesc.textContent = "Your interactive campaign companion powered by Gemini AI & Agent Platform. Explore quests, roll virtual dice, request magic item visual artwork, or attach campaign notes.";
+    }
   }
 
   renderPrompts();
@@ -668,12 +944,17 @@ function switchMode(mode) {
 function el(tag, cls, text) { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
 
 function bubble(who) {
+  if (isFirstMessage && welcomeCard) {
+    welcomeCard.remove();
+    isFirstMessage = false;
+  }
+
   const m = el("div", "msg " + who);
   let authorLabel = "👤 You";
   if (who === "agent") {
     authorLabel = currentMode === "fantasy" ? "🧙‍♂️ Dungeon Master" : "⚡ Omni Assistant";
   }
-  const author = el("div", "msg-author", authorLabel);
+  const author = el("div", "msg-header", authorLabel);
   m.appendChild(author);
   const b = el("div", "bubble");
   m.appendChild(b); log.appendChild(m); log.scrollTop = log.scrollHeight;
@@ -686,7 +967,7 @@ function sendPrompt(promptText) {
 }
 
 /* ----------------------------------------------------------------------------
- * A2UI renderer (v0.8 Basic Catalog).
+ * A2UI Renderer (v0.8 Basic Catalog).
  * -------------------------------------------------------------------------- */
 
 function boundStr(v) {
@@ -818,7 +1099,9 @@ form.addEventListener("submit", async (ev) => {
   input.value = "";
   removeAttachment();
 
-  const b = bubble("agent"); b.textContent = "…";
+  const b = bubble("agent");
+  b.innerHTML = '<div class="typing-indicator"><span></span><span></span><span></span></div>';
+
   try {
     const res = await fetch("/chat", { method: "POST", body: formData });
     const raw = await res.text();
@@ -831,7 +1114,7 @@ form.addEventListener("submit", async (ev) => {
   }
 });
 
-// Initialize mode on page load
+// Initialize active mode
 switchMode(currentMode);
 </script>
 </body>
